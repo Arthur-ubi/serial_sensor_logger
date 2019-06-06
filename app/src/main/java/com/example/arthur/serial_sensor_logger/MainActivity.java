@@ -21,6 +21,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.text.DateFormat;
 
 import com.hoho.android.usbserial.driver.*;
 
@@ -29,7 +32,12 @@ public class MainActivity extends AppCompatActivity {
     UsbSerialDriver usb;
     byte buf[] = new byte[2048];
     int num;
-    boolean temp_flg;
+    boolean save_flg = false;
+
+    //現在時刻を使用する
+    Calendar calendar = Calendar.getInstance();
+    DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmS");
+    String date = dateFormat.format(calendar.getTime()) + ".csv";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -39,11 +47,22 @@ public class MainActivity extends AppCompatActivity {
         verifyStoragePermissions(this);
 
         //STARTボタン
-        Button buttonSave_s = findViewById(R.id.start_button);
-        buttonSave_s.setOnClickListener(new View.OnClickListener() {
+        Button buttonStart = findViewById(R.id.start_button);
+        buttonStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) { //Dialog();
-                temp_flg = true;
+                save_flg = true;
+
+            }
+
+        });
+
+        //STOPボタン
+        Button buttonStop = findViewById(R.id.stop_button);
+        buttonStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { //Dialog();
+                save_flg = false;
 
             }
 
@@ -72,8 +91,8 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     while (true) {
                         num = usb.read(buf, buf.length);
-                        if (num > 0)
-                            saveFile("XXX.csv", new String(buf, 0, num));
+                        if (num > 0 && save_flg)
+                            saveFile(date, new String(buf, 0, num));
                             runOnUiThread(new Runnable(){//メインスレッド以外操作のスレッドでUIを操作
                                 @Override
                                 public void run(){
@@ -81,7 +100,8 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             });
                             Log.v("arduino", new String(buf, 0, num)); // Arduinoから受信した値をlogcat出力
-                        Thread.sleep(0);//TODO データ欠落がないか確認(全15項目)
+                        Thread.sleep(0);//TODO 長時間回すと数スレッド分スキップされる事象を観測．要調査
+
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -105,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
     //外部ストレージに保存するためのパーミッション確認
