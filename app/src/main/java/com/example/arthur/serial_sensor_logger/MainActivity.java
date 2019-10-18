@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
                         receiveDataList.add(new String(buf, 0, num));
                         //receiveDataList.add("\n");
                         //saveFile(date, new String(buf, 0, num));
-                        System.out.println(new String(buf, 0, num));
+                        //System.out.println(new String(buf, 0, num));
                         runOnUiThread(new Runnable() {//メインスレッド以外操作のスレッドでUIを操作
                             // @Override
                             public void run() {
